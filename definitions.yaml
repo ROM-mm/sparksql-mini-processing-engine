@@ -1,0 +1,39 @@
+pipeline_properties:
+  read:
+    format: json
+    options:
+      header: false
+      inferSchema: false
+      path: "/Users/romeritomorais/Documents/Develop/Projects/datasets/stage/*"
+      delimiter: ","
+      recursiveFileLookup: true
+
+  write:
+    format: parquet
+    mode: overwrite
+    partitionBy:
+      - date_of_week
+    options:
+      header: true
+      delimiter: ","
+
+pipeline_settings:
+  print_dataframe: false
+  print_plan_execution: false
+  engine:
+    name: pyspark
+    version: 3.5.4
+
+execution_sql_transfomation:
+  - table_aviation_select_structure
+  - table_aviation_extract_date
+  - table_aviation_filter
+  - table_aviation_definite_data
+
+datalake_zones:
+  path: "/Users/romeritomorais/Documents/Develop/Projects/datasets/"
+  zones:
+  - stage
+  - landing
+  - raw
+  - trusted
