@@ -1,0 +1,188 @@
+definitions:
+  - glob:
+      include: src/sql/**/*.sql
+  - glob:
+      include: src/modules/**/*.py
+
+catalog: spark_catalog
+database: default
+
+configuration:
+  spark.sql.shuffle.partitions: "200"
+  spark.sql.adaptive.enabled: "true"
+  spark.sql.adaptive.coalescePartitions.enabled: "true"
+  spark.sql.adaptive.skewJoin.enabled: "true"
+  spark.sql.sources.default: "parquet"
+  spark.sql.warehouse.dir: "lakehouse/.meta"
+  spark.sql.json.reader.allowUnquotedFieldNames: "true"
+  spark.sql.json.reader.allowSingleQuotes: "true"
+  spark.sql.json.reader.allowNumericLeadingZeros: "true"
+  spark.sql.json.reader.allowBackslashEscapingAnyCharacter: "true"
+  spark.sql.csv.reader.header: "true"
+  spark.sql.csv.reader.inferSchema: "true"
+  spark.sql.csv.reader.delimiter: ","
+  spark.sql.csv.reader.recursiveFileLookup: "true"
+  spark.sql.parquet.compression.codec: "snappy"
+  spark.sql.parquet.writeLegacyFormat: "false"
+  spark.sql.parquet.mergeSchema: "true"
+  spark.executor.memory: "2g"
+  spark.driver.memory: "1g"
+  spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+  spark.sql.execution.arrow.pyspark.enabled: "true"
+
+transformation_settings:
+  validate_schema: true
+  log_transformations: true
+  execution_mode: batch
+  use_dependency_detection: true
+
+source:
+  format: "csv"
+  path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/stage/*.csv"
+  options:
+    header: "true"
+    inferSchema: "true"
+    delimiter: ","
+    recursiveFileLookup: "true"
+  view_name: "source_table"
+
+export:
+  general:
+    base_path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver"
+    mode: "overwrite"
+    coalesce: null
+    repartition: null
+  parquet:
+    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/table_customers_final"
+    mode: "overwrite"
+    compression: "snappy"
+    partitionBy: []
+    bucketBy:
+      numBuckets: null
+      columns: []
+    sortBy: []
+    mergeSchema: true
+    writeLegacyFormat: false
+    options: {}
+  csv:
+    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/export_csv"
+    mode: "overwrite"
+    header: true
+    delimiter: ","
+    quote: '"'
+    escape: "\\"
+    encoding: "UTF-8"
+    partitionBy: []
+    sortBy: []
+    options:
+      nullValue: ""
+      emptyValue: ""
+      lineSep: "\n"
+  json:
+    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/export_json"
+    mode: "overwrite"
+    dateFormat: "yyyy-MM-dd"
+    timestampFormat: "yyyy-MM-dd HH:mm:ss"
+    timestampFormatInRead: "yyyy-MM-dd HH:mm:ss"
+    timestampFormatInWrite: "yyyy-MM-dd HH:mm:ss"
+    partitionBy: []
+    sortBy: []
+    options: {}
+  orc:
+    path: "lakehouse/silver/export_orc"
+    mode: "overwrite"
+    compression: "snappy"
+    partitionBy: []
+    bucketBy:
+      numBuckets: null
+      columns: []
+    sortBy: []
+    options: {}
+  delta:
+    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/export_delta"
+    mode: "overwrite"
+    partitionBy: []
+    options: {}
+
+lakehouse_zones:
+  base_path: "lakehouse"
+  zones:
+    - name: stage
+      path: "lakehouse/stage"
+      description: "Dados brutos de entrada"
+    - name: silver
+      path: "lakehouse/silver"
+      description: "Dados confiáveis e validados (camada intermediária)"
+    - name: gold
+      path: "lakehouse/gold"
+      description: "Dados agregados e prontos para consumo (camada final)"
+    - name: meta
+      path: "lakehouse/.meta"
+      description: "Metadados e persistência interna do Spark (warehouse)"
+
+data_formats:
+  input:
+    json:
+      recursiveFileLookup: "true"
+      multiLine: "true"
+      allowUnquotedFieldNames: "true"
+      allowSingleQuotes: "true"
+    csv:
+      header: "true"
+      inferSchema: "true"
+      delimiter: ","
+      recursiveFileLookup: "true"
+  output:
+    parquet:
+      compression: "snappy"
+      mode: "overwrite"
+      partitionBy: []
+    csv:
+      header: "true"
+      delimiter: ","
+      mode: "overwrite"
+
+name: &pipeline_name spark_declarative_pipelines
+
+dag:
+  dag_id: *pipeline_name
+  description: "Pipeline SparkSQL dinâmico: detecta arquivos SQL automaticamente e cria linhagem"
+  schedule_interval:
+    type: timedelta
+    days: 1
+  start_date:
+    type: days_ago
+    days: 1
+  catchup: false
+  tags:
+    - spark
+    - sql
+    - data-pipeline
+    - transformations
+    - lineage
+    - dynamic
+    - dbt-like
+  default_args:
+    owner: data-engineering
+    depends_on_past: false
+    email_on_failure: false
+    email_on_retry: false
+    retries: 1
+    retry_delay:
+      type: timedelta
+      minutes: 5
+  mode: dynamic
+  tasks:
+    run_spark_pipelines:
+      task_id: run_spark_pipelines
+      use_cli: true
+    validate_output:
+      task_id: validate_output
+
+environment:
+  name: "dev"
+  debug: true
+  validate_data: true
+
+
+

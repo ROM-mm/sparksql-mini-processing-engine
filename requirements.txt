@@ -1,12 +1,18 @@
-cloudpickle==2.2.1
-graphviz==0.20.3
-numpy==2.2.1
-pandas==2.2.2
-py4j==0.10.9.7
-pyarrow==17.0.0
-pyspark==3.5.4
-python-dateutil==2.9.0.post0
-pytz==2024.2
-PyYAML==6.0.2
-six==1.17.0
-tzdata==2024.2
+# Spark e PySpark
+# Versão 4.1.0.dev3 (development preview com suporte a SDP)
+pyspark==4.1.0.dev3
+
+# Alternativas (descomente se necessário):
+# pyspark==4.0.0  # Versão estável (sem SDP)
+# pyspark>=4.1.0a1  # Outra versão preview
+# pip install --pre pyspark  # Última versão preview disponível
+
+pyyaml>=6.0
+
+# Airflow
+# Versão fixa 2.10.5 para garantir compatibilidade e reprodutibilidade
+apache-airflow==2.10.5
+apache-airflow-providers-apache-spark>=4.0.0
+
+# Utilitários
+python-dateutil>=2.8.2

@@ -1,0 +1,9 @@
+id,nome,email,telefone,cidade,estado
+1,João Silva,joao.silva@email.com,(11) 98765-4321,São Paulo,SP
+2,Maria Santos,maria.santos@email.com,(21) 97654-3210,Rio de Janeiro,RJ
+3,Pedro Oliveira,pedro.oliveira@email.com,(31) 96543-2109,Belo Horizonte,MG
+4,Ana Costa,ana.costa@email.com,(41) 95432-1098,Curitiba,PR
+5,Carlos Souza,carlos.souza@email.com,(51) 94321-0987,Porto Alegre,RS
+6,Julia Ferreira,julia.ferreira@email.com,(11) 93210-9876,Campinas,SP
+7,Rafael Alves,rafael.alves@email.com,(21) 92109-8765,Niterói,RJ
+8,Fernanda Lima,fernanda.lima@email.com,(31) 91098-7654,Uberlândia,MG

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Spark
+*.log
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Datasets de saída (mantém estrutura, ignora arquivos)
+datasets/stage/*.json
+datasets/stage/*.csv
+datasets/landing/*
+datasets/raw/*
+datasets/trusted/*
+!datasets/**/.gitkeep
+*.parquet
+
+# Airflow
+airflow_home/
+*.airflow
+airflow.db
+airflow.cfg
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+activate_env.sh

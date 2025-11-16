@@ -1,0 +1,31 @@
+# Exemplo de configuração do Airflow
+# Copie este arquivo para airflow_home/airflow.cfg após executar setup.sh
+
+[core]
+# Diretório onde os DAGs estão localizados
+dags_folder = /caminho/para/declarative-pipelines/dags
+
+# Não carregar exemplos
+load_examples = False
+
+# Executor (use SequentialExecutor para desenvolvimento local)
+executor = SequentialExecutor
+
+# Timezone
+default_timezone = America/Sao_Paulo
+
+[scheduler]
+# Intervalo de verificação de novos DAGs
+dag_dir_list_interval = 30
+
+[webserver]
+# Porta do webserver
+web_server_port = 8081
+
+# Host
+web_server_host = 0.0.0.0
+
+[logging]
+# Nível de log
+logging_level = INFO
+
