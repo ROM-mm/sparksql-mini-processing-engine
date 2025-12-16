@@ -94,7 +94,17 @@ class ConfigLoader:
         zones_config = config.get('lakehouse_zones', {})
         zones = zones_config.get('zones', [])
         
-        return {zone['name']: zone['path'] for zone in zones}
+        result = {}
+        for zone in zones:
+            if not isinstance(zone, dict):
+                continue
+            zone_name = zone.get('name')
+            zone_path = zone.get('path')
+            # Only include zones that have both required fields
+            if zone_name and zone_path:
+                result[zone_name] = zone_path
+        
+        return result
     
     def get_execution_order(self) -> list:
         """

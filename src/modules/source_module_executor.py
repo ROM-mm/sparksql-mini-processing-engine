@@ -71,7 +71,7 @@ class SourceModuleExecutor:
             # Remove from sys.modules if already imported to force reload
             if module_name in sys.modules:
                 self.log.info(f"Module {module_name} already imported, reloading...")
-                importlib.reload(sys.modules[module_name])
+                module = importlib.reload(sys.modules[module_name])
             else:
                 # Import module
                 spec = importlib.util.spec_from_file_location(module_name, source_module_path)
