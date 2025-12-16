@@ -19,7 +19,8 @@ class SQLTemplateProcessor:
     """
     
     # Pattern to detect {{ ref('name') }}
-    REF_PATTERN = re.compile(r'\{\{\s*ref\s*\(\s*[\'"](\w+)[\'"]\s*\)\s*\}\}', re.IGNORECASE)
+    # Supports alphanumeric, underscore, dot and hyphen in names
+    REF_PATTERN = re.compile(r'\{\{\s*ref\s*\(\s*[\'"]([\w.-]+)[\'"]\s*\)\s*\}\}', re.IGNORECASE)
     
     # Pattern to detect CREATE VIEW
     CREATE_VIEW_PATTERN = re.compile(

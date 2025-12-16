@@ -53,14 +53,12 @@ pipeline_config = config_loader.load_pipeline_config()
 def parse_timedelta(config: dict) -> timedelta:
     """Parse timedelta from YAML config."""
     if isinstance(config, dict) and config.get('type') == 'timedelta':
-        if 'days' in config:
-            return timedelta(days=config['days'])
-        elif 'hours' in config:
-            return timedelta(hours=config['hours'])
-        elif 'minutes' in config:
-            return timedelta(minutes=config['minutes'])
-        elif 'seconds' in config:
-            return timedelta(seconds=config['seconds'])
+        return timedelta(
+            days=config.get('days', 0),
+            hours=config.get('hours', 0),
+            minutes=config.get('minutes', 0),
+            seconds=config.get('seconds', 0)
+        )
     return timedelta(days=1)  # default
 
 def parse_start_date(config: dict) -> datetime:

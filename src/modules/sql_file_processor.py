@@ -142,13 +142,18 @@ class SQLFileProcessor:
             self.log.info(f"   Detected transformation file - will create MATERIALIZED VIEW '{view_name}' (will be cleaned up after processing)")
         
         # Detect and remove any existing CREATE VIEW
+        # Supports:
+        # - Optional TEMPORARY and MATERIALIZED
+        # - Optional IF NOT EXISTS
+        # - View names with dots, dashes, underscores ([\w.-]+) or backticks (`[^`]+`)
+        # - Optional USING and LOCATION
         create_view_pattern = re.compile(
-            r'CREATE\s+(?:TEMPORARY\s+)?(?:MATERIALIZED\s+)?VIEW\s+\w+\s*(?:USING\s+\w+\s*)?(?:LOCATION\s+[\'"][^\'"]+[\'"]\s*)?AS\s*',
+            r'CREATE\s+(?:TEMPORARY\s+)?(?:MATERIALIZED\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:[\w.-]+|`[^`]+`)\s*(?:USING\s+\w+\s*)?(?:LOCATION\s+[\'"][^\'"]+[\'"]\s*)?AS\s*',
             re.IGNORECASE | re.DOTALL
         )
         
         create_view_using_pattern = re.compile(
-            r'CREATE\s+(?:TEMPORARY\s+)?(?:MATERIALIZED\s+)?VIEW\s+\w+\s*(?:USING\s+\w+\s*)?(?:OPTIONS\s*\([^)]+\)\s*)?;',
+            r'CREATE\s+(?:TEMPORARY\s+)?(?:MATERIALIZED\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:[\w.-]+|`[^`]+`)\s*(?:USING\s+\w+\s*)?(?:OPTIONS\s*\([^)]+\)\s*)?;',
             re.IGNORECASE | re.DOTALL
         )
         
