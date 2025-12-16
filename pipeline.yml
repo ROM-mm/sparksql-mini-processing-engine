@@ -38,7 +38,7 @@ transformation_settings:
 
 source:
   format: "csv"
-  path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/stage/*.csv"
+  path: "lakehouse/stage/*.csv"
   options:
     header: "true"
     inferSchema: "true"
@@ -48,12 +48,12 @@ source:
 
 export:
   general:
-    base_path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver"
+    base_path: "lakehouse/silver"
     mode: "overwrite"
     coalesce: null
     repartition: null
   parquet:
-    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/table_customers_final"
+    path: "lakehouse/silver/table_customers_final"
     mode: "overwrite"
     compression: "snappy"
     partitionBy: []
@@ -65,7 +65,7 @@ export:
     writeLegacyFormat: false
     options: {}
   csv:
-    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/export_csv"
+    path: "lakehouse/silver/export_csv"
     mode: "overwrite"
     header: true
     delimiter: ","
@@ -79,7 +79,7 @@ export:
       emptyValue: ""
       lineSep: "\n"
   json:
-    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/export_json"
+    path: "lakehouse/silver/export_json"
     mode: "overwrite"
     dateFormat: "yyyy-MM-dd"
     timestampFormat: "yyyy-MM-dd HH:mm:ss"
@@ -99,7 +99,7 @@ export:
     sortBy: []
     options: {}
   delta:
-    path: "/Users/romerito.morais/Documents/projects/develop/declarative-pipelines/lakehouse/silver/export_delta"
+    path: "lakehouse/silver/export_delta"
     mode: "overwrite"
     partitionBy: []
     options: {}

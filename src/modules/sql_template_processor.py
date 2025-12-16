@@ -3,7 +3,7 @@ SQL Template Processor dbt style.
 Supports {{ ref('view_name') }} to reference other views and build dependencies.
 """
 import re
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 from pathlib import Path
 
 
@@ -140,7 +140,7 @@ class SQLTemplateProcessor:
         sql_content: str, 
         available_views: Set[str],
         task_name: Optional[str] = None
-    ) -> tuple[bool, List[str]]:
+    ) -> Tuple[bool, List[str]]:
         """
         Validates if all {{ ref('name') }} references exist.
         

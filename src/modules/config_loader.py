@@ -89,12 +89,63 @@ class ConfigLoader:
         
         Returns:
             Dicionário com nome da zona: caminho
+            
+        Raises:
+            ValueError: Se a configuração de zonas está malformada
         """
         config = self._load_pipeline_yml()
         zones_config = config.get('lakehouse_zones', {})
         zones = zones_config.get('zones', [])
         
-        return {zone['name']: zone['path'] for zone in zones}
+        # Validar que zones é uma lista
+        if not isinstance(zones, list):
+            raise ValueError(
+                f"Configuração 'lakehouse_zones.zones' deve ser uma lista, "
+                f"mas encontrado tipo: {type(zones).__name__}"
+            )
+        
+        # Validar cada zona e construir mapeamento
+        zone_mapping = {}
+        for idx, zone in enumerate(zones):
+            # Validar que zona é um dicionário
+            if not isinstance(zone, dict):
+                raise ValueError(
+                    f"Zona na posição {idx} deve ser um dicionário, "
+                    f"mas encontrado tipo: {type(zone).__name__}"
+                )
+            
+            # Validar campos obrigatórios
+            if 'name' not in zone:
+                raise ValueError(
+                    f"Zona na posição {idx} está faltando o campo obrigatório 'name'. "
+                    f"Campos disponíveis: {list(zone.keys())}"
+                )
+            
+            if 'path' not in zone:
+                raise ValueError(
+                    f"Zona '{zone.get('name', f'posição {idx}')}' está faltando o campo obrigatório 'path'. "
+                    f"Campos disponíveis: {list(zone.keys())}"
+                )
+            
+            zone_name = zone['name']
+            zone_path = zone['path']
+            
+            # Validar que name e path são strings
+            if not isinstance(zone_name, str):
+                raise ValueError(
+                    f"Campo 'name' da zona na posição {idx} deve ser string, "
+                    f"mas encontrado tipo: {type(zone_name).__name__}"
+                )
+            
+            if not isinstance(zone_path, str):
+                raise ValueError(
+                    f"Campo 'path' da zona '{zone_name}' deve ser string, "
+                    f"mas encontrado tipo: {type(zone_path).__name__}"
+                )
+            
+            zone_mapping[zone_name] = zone_path
+        
+        return zone_mapping
     
     def get_execution_order(self) -> list:
         """
