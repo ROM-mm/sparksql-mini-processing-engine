@@ -22,6 +22,20 @@ class ViewLoader:
         """
         self.log = logger_instance or logger
     
+    def _get_available_tables(self, spark: SparkSession) -> tuple:
+        """
+        Get available tables from catalog with case-insensitive mapping.
+        
+        Args:
+            spark: SparkSession instance
+            
+        Returns:
+            Tuple of (list of table names, dict mapping uppercase names to actual names)
+        """
+        available_tables = [t.name for t in spark.catalog.listTables()]
+        available_tables_upper = {at.upper(): at for at in available_tables}
+        return available_tables, available_tables_upper
+    
     def ensure_dependent_views_available(
         self,
         spark: SparkSession,
@@ -46,13 +60,12 @@ class ViewLoader:
         
         self.log.info(f"Detected table references in SQL: {referenced_tables}")
         
-        # List available tables in catalog
+        # List available tables in catalog (cached for this method call)
         try:
-            available_tables = [t.name for t in spark.catalog.listTables()]
+            available_tables, available_tables_upper = self._get_available_tables(spark)
             self.log.debug(f"Available tables in catalog: {available_tables[:10]}...")
             
             # Check which tables are missing (case-insensitive check)
-            available_tables_upper = {at.upper(): at for at in available_tables}
             missing_tables = []
             found_tables = []
             
@@ -78,9 +91,8 @@ class ViewLoader:
                 self.log.info("Attempting to load Materialized Views from warehouse.dir...")
                 self._load_views_from_warehouse(spark, missing_tables)
                 
-                # Re-check after loading
-                available_tables_after = [t.name for t in spark.catalog.listTables()]
-                available_tables_upper_after = {at.upper(): at for at in available_tables_after}
+                # Re-check after loading (refresh cache)
+                available_tables_after, available_tables_upper_after = self._get_available_tables(spark)
                 
                 still_missing = []
                 for ref_table in missing_tables:
@@ -105,9 +117,8 @@ class ViewLoader:
                     except Exception as refresh_error:
                         self.log.debug(f"Could not refresh catalog: {refresh_error}")
                     
-                    # Final re-check after fallback creation
-                    available_tables_final = [t.name for t in spark.catalog.listTables()]
-                    available_tables_upper_final = {at.upper(): at for at in available_tables_final}
+                    # Final re-check after fallback creation (refresh cache)
+                    available_tables_final, available_tables_upper_final = self._get_available_tables(spark)
                     
                     final_missing = []
                     for ref_table in still_missing:
@@ -220,8 +231,8 @@ class ViewLoader:
                     self.log.info(f"   ✓ Refreshed catalog for '{table_name}'")
                     
                     # Verify it's now available
-                    available_tables = [t.name for t in spark.catalog.listTables()]
-                    if table_name in available_tables:
+                    current_tables, _ = self._get_available_tables(spark)
+                    if table_name in current_tables:
                         self.log.info(f"   ✓ Table '{table_name}' now available in catalog")
                         table_loaded = True
                         continue
@@ -231,9 +242,9 @@ class ViewLoader:
                 # Approach 2: Try case-insensitive refresh
                 if not table_loaded:
                     try:
-                        available_tables = [t.name for t in spark.catalog.listTables()]
+                        current_tables, _ = self._get_available_tables(spark)
                         # Find case-insensitive match
-                        for available_table in available_tables:
+                        for available_table in current_tables:
                             if available_table.upper() == table_name.upper():
                                 self.log.info(
                                     f"   Found case variation: '{available_table}' "
@@ -295,8 +306,8 @@ class ViewLoader:
                             table_loaded = True
                             
                             # Verify it's now available
-                            available_tables = [t.name for t in spark.catalog.listTables()]
-                            if table_name in available_tables:
+                            current_tables, _ = self._get_available_tables(spark)
+                            if table_name in current_tables:
                                 self.log.info(f"   ✓ Verified '{table_name}' is now in catalog")
                         except Exception as create_error:
                             self.log.warning(
@@ -345,8 +356,7 @@ class ViewLoader:
             missing_tables: List of table names that are missing
         """
         try:
-            available_tables = [t.name for t in spark.catalog.listTables()]
-            available_tables_set = {t.upper(): t for t in available_tables}
+            available_tables, available_tables_set = self._get_available_tables(spark)
             
             self.log.info(f"Available tables in catalog: {available_tables}")
             self.log.info(f"Missing tables to create: {missing_tables}")
@@ -399,7 +409,7 @@ class ViewLoader:
                             )
                             
                             # Verify it was created
-                            tables_after = [t.name for t in spark.catalog.listTables()]
+                            tables_after, _ = self._get_available_tables(spark)
                             if missing_table in tables_after:
                                 self.log.info(f"✓ Successfully created '{missing_table}' from '{source_found}'")
                             else:
