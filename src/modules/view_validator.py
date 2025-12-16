@@ -2,6 +2,7 @@
 Module for validating views and tables in Spark catalog.
 """
 import logging
+import re
 from pathlib import Path
 from typing import Optional, List
 from pyspark.sql import SparkSession
@@ -115,12 +116,40 @@ class ViewValidator:
             
             # Check record count
             try:
-                count = spark.sql(f"SELECT COUNT(*) as cnt FROM {table.name}").collect()[0]['cnt']
+                qualified = self._quote_table_identifier(table.name)
+                count = spark.sql(f"SELECT COUNT(*) as cnt FROM {qualified}").collect()[0]['cnt']
                 self.log.info(f"     Total records: {count}")
             except Exception as count_error:
                 self.log.debug(f"     Error counting records: {count_error}")
         except Exception as table_info_error:
             self.log.debug(f"     Error getting information: {table_info_error}")
+
+    @staticmethod
+    def _quote_table_identifier(name: str) -> str:
+        """
+        Quote and validate a Spark SQL table identifier to avoid SQL injection / parse errors.
+
+        Supports unqualified ("tbl") and qualified ("db.tbl") names composed of:
+        letters, digits, underscore. Anything else is rejected.
+        """
+        if name is None:
+            raise ValueError("Table name cannot be None")
+
+        name = name.strip()
+        if not name:
+            raise ValueError("Table name cannot be empty")
+
+        # Allow db.table (Spark catalog listTables often returns unqualified names, but be safe)
+        parts = name.split(".")
+        if len(parts) > 2:
+            raise ValueError(f"Unsupported table identifier format: {name!r}")
+
+        ident_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+        for part in parts:
+            if not ident_re.match(part):
+                raise ValueError(f"Unsafe table identifier component: {part!r}")
+
+        return ".".join(f"`{p}`" for p in parts)
     
     def search_parquet_files(self, spark: SparkSession, project_root: Optional[Path] = None):
         """

@@ -20,7 +20,13 @@ class DataFrameDisplay:
         """
         self.log = logger_instance or logger
     
-    def display_preview(self, df: DataFrame, view_name: str = "DataFrame", max_rows: int = 10):
+    def display_preview(
+        self,
+        df: DataFrame,
+        view_name: str = "DataFrame",
+        max_rows: int = 10,
+        show_total_count: bool = False
+    ):
         """
         Display DataFrame preview in logs.
         This method formats and logs the data instead of using show() which may not appear in logs.
@@ -29,6 +35,7 @@ class DataFrameDisplay:
             df: Spark DataFrame to display
             view_name: Name of the view/DataFrame for logging
             max_rows: Maximum number of rows to display
+            show_total_count: If True, runs df.count() (can be expensive on large datasets)
         """
         try:
             # Get schema
@@ -72,12 +79,13 @@ class DataFrameDisplay:
                 ])
                 self.log.info(row_str)
             
-            # Log total count if available
-            try:
-                total_count = df.count()
-                self.log.info(f"\nTotal rows in '{view_name}': {total_count}")
-            except:
-                pass
+            # Log total count only if explicitly requested (df.count() triggers a full scan)
+            if show_total_count:
+                try:
+                    total_count = df.count()
+                    self.log.info(f"\nTotal rows in '{view_name}': {total_count}")
+                except Exception as count_error:
+                    self.log.debug(f"Could not count total rows for '{view_name}': {count_error}")
             
             self.log.info(f"{'=' * 80}\n")
             
